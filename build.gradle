@@ -20,8 +20,6 @@ dependencies {
 	compile 'com.google.inject:guice:3.0'
 	compile 'com.google.inject.extensions:guice-assistedinject:3.0'
 
-	compile ':GinJitsu:'
-	
 	gwtCompilerTools 'com.google.gwt:gwt-dev:2.5.0'
 }
 
