@@ -1,7 +1,7 @@
-ginjitsu-example 
+gin-example 
 ----------------
 
-A gradle gwt project to test the https://github.com/gammagec/GinJitsu[GinJitsu] library.
+A gradle gwt project to test circular dependency resolution with https://code.google.com/p/google-gin/[Google GIN].
 
 How To
 ------
