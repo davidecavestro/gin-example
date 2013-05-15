@@ -1,0 +1,139 @@
+apply plugin: 'war'
+
+task wrapper(type: Wrapper) { gradleVersion = '1.6' }
+
+repositories { 
+	mavenCentral ()
+    flatDir {dirs 'lib'}
+}
+
+configurations {
+	gwtCompile
+	gwtCompilerTools
+}
+
+dependencies {
+	compile 'com.google.gwt:gwt-user:2.5.0'
+	compile 'com.google.gwt:gwt-dev:2.5.0'
+
+	compile 'com.google.gwt.inject:gin:2.0.0'
+	compile 'com.google.inject:guice:3.0'
+	compile 'com.google.inject.extensions:guice-assistedinject:3.0'
+
+	compile ':GinJitsu:'
+	
+	gwtCompilerTools 'com.google.gwt:gwt-dev:2.5.0'
+}
+
+sourceSets {
+	main {
+		compileClasspath += configurations.gwtCompile
+	}
+}
+
+def entryPoint = 'com.acme.main.Main'
+
+
+def gwtCompilerPath = []
+
+project.configurations.gwtCompilerTools.each {
+	gwtCompilerPath << it
+}
+project.sourceSets.each {it.allSource.srcDirs.each {
+		gwtCompilerPath << it
+	}
+}
+project.configurations.compile.each {
+	gwtCompilerPath << it
+}
+
+gwtCompilerPath << sourceSets.main.output.classesDir
+
+task gwtCompile (type: JavaExec) {
+	
+	gwtCompilerPath.each {
+		inputs.file it
+	}
+	outputs.dir 'build/war'
+
+	logger.lifecycle ("Using gwtCompilerPath: $gwtCompilerPath")
+	main='com.google.gwt.dev.Compiler'
+	jvmArgs "-Xmx256m"
+	args '-war', 'build/war', '-deploy', 'deploy', '-logLevel', 'INFO', '-localWorkers', '4', '-strict', entryPoint
+		
+	classpath {
+		gwtCompilerPath
+	}
+}
+
+
+task gwtDevMode () {
+	description = "Launches GWT DevMode for all gwt modules"
+
+	copy {
+		from file ('src/main/webapp/main.html')
+		into 'war'
+	}
+	
+	doLast {
+		logger.lifecycle "launching gwt dev mode"
+		ant.java (fork: true, spawn: true, classname: 'com.google.gwt.dev.DevMode') {
+
+//			jvmarg(value:'-Xdebug')
+//			jvmarg(value: '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9999')
+
+			classpath {
+				gwtCompilerPath.each {
+
+	                logger.lifecycle ("Using $it to gwtDev Mode classpath")
+					pathElement(location: it)
+				}				
+			}
+			
+			/*
+			* optional file 'gwt-dev-mode.properties' to control
+			* the network interface used for dev mode (or other params)
+			*/
+		   def gwtFile = new File (projectDir, 'gwt-dev-mode.properties')
+		   if (gwtFile.exists ()) {
+			   //supports binding the code server on a custom interface
+			   println "Using ${gwtFile} for gwt dev mode args"
+			   def argsMap = new Properties()
+			   gwtFile.withInputStream {
+				   stream -> argsMap.load (stream)
+			   }
+			   
+			   argsMap.each {k, v->
+				   if (!['debug', 'params'].contains (k)) {//exclude parameters that needs custom processing, could be more...
+					   arg(value: "-${k}") //add the parameter
+					   if (v!=null && v.length ()>0) {         //the parameter has an associated value
+						   arg(value: "${v}") //add the value
+					   }
+				   }
+			   }
+		   } else {
+			   logger.error "${gwtFile} does not exist"
+		   }
+
+			arg (line: '-startupUrl main.html')
+			arg (value: entryPoint)
+		}
+	}
+}
+
+war.dependsOn gwtCompile
+gwtDevMode.dependsOn gwtCompile
+gwtCompile.dependsOn compileJava 
+//webAppDirName = 'war'
+
+
+task showExecWorkingDir {
+    new ByteArrayOutputStream().withStream { os ->
+        def result = exec {
+            executable = 'pwd'
+            standardOutput = os
+        }
+        def outputAsString = os.toString()
+        println "exec working dir is: ${outputAsString}"
+    }
+}

@@ -1,0 +1,12 @@
+ginjitsu-example 
+----------------
+
+A gradle gwt project to test the https://github.com/gammagec/GinJitsu[GinJitsu] library.
+
+How To
+------
+From CLI.
+
+* invoke +./gradlew --gui+ to obtain the Gradle GUI
+* or invoke +./gradlew gwtDevMode+ to directly launch the GWT Dev Mode
+

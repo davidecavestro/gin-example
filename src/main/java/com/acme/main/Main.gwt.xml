@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module >
+	<inherits name='com.google.gwt.user.User'/>
+
+	<inherits name="com.google.gwt.inject.Inject"/>
+<!--
+   <inherits name="com.chrisgammage.ginjitsu.GinJitsu"/>
+-->
+
+	<!-- Add logging support. -->
+	<inherits name='com.google.gwt.logging.Logging' />
+	<set-property name='gwt.logging.logLevel' value='FINE' />
+	<set-property name='gwt.logging.popupHandler' value='ENABLED' />
+ 	<set-property name='gwt.logging.consoleHandler' value='ENABLED' />
+<!-- 	<set-property name='gwt.logging.firebugHandler' value='ENABLED' /> -->
+	
+	<entry-point class="com.acme.main.client.Main" />
+</module>
